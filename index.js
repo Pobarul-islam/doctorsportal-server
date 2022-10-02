@@ -31,12 +31,46 @@ async function run() {
       res.send(services);
     });
 
+
+
+
+    app.get('/available', async (req, res) => {
+      const date = req.query.date || "Oct 28, 2022";
+
+      // get all service
+
+      const services = await serviceCollection.find().toArray();
+
+      // get the booking of the day
+
+      const query = { date: date };
+      const bookings = await bookingCollection.find(query).toArray();
+
+      // for each service, find booking that service
+
+      services.forEach(service => {
+        const serviceBookings = bookings.filter(b => b.treatment === service.name);
+        const booked = serviceBookings.map(s => s.slot);
+        const available = service.slots.filter(s => !booked.includes(s));
+        service.available = available;
+      })
+
+      res.send(services);
+    })
+
     // api naming convention
 
     app.post('/booking', async (req, res) => {
       const booking = req.body;
+      const query = { treatment: booking.treatment, date: booking.date, patient: booking.patient }
+      const exists = await bookingCollection.findOne(query);
+      if (exists) {
+        return res.send({success: false, booking: exists})
+      }
+      
+
       const result = await bookingCollection.insertOne(booking);
-      res.send(result);
+      return res.send({success: true, result});
     })
 
 
