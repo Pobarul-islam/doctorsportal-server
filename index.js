@@ -57,15 +57,14 @@ async function run() {
       const services = await serviceCollection.find().toArray();
 
      
+      // get the booking of that day
+
+      const query = { date: date };
+      const bookings = await bookingCollection.find(query).toArray();
 
       // for each service, find booking that service
 
-      services.forEach(service => {
-        const serviceBooking = bookings.filter(book => book.treatment === service.name);
-        const bookedSlots = serviceBooking.map(book => book.slot);
-        const available = service.slots.filter(slot => !bookedSlots.includes(slot));
-        service.slot = available;
-      })
+  
 
       services.forEach(service => {
         const serviceBookings = bookings.filter(b => b.treatment === service.name);
